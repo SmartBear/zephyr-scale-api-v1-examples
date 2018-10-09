@@ -1,0 +1,14 @@
+{
+  "name": "tm4j-api-v1-examples",
+  "version": "1.0.0",
+  "description": "Use case examples using the API v1 of Test Management for Jira",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "form-data": "^2.3.2",
+    "node-fetch": "^2.2.0"
+  }
+}
