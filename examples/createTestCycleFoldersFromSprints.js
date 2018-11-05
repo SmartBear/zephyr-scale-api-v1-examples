@@ -6,7 +6,7 @@ class TestCycleFolderCreator {
     constructor(jiraSettings, projectKey) {
 		this._jiraSettings = jiraSettings;
         this._projectKey = projectKey;
-        this._authString = 'Basic ' + Buffer.from(`${this._jiraSettings.user}:${this._jiraSettings.password}`).toString('base64');
+        this._authString = 'Basic ' + Buffer.from(this._jiraSettings.user + ':' + this._jiraSettings.password).toString('base64');
     }
 
     async createFolders() {
@@ -18,7 +18,7 @@ class TestCycleFolderCreator {
     }
 
     async _getBoardForProject(projectKey) {
-        const url = encodeURI(`${this._jiraSettings.url}/rest/agile/1.0/board?projectKeyOrId=${projectKey}`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/agile/1.0/board?projectKeyOrId=' + projectKey);
         const response = await fetch(url, {headers: {'Authorization': this._authString}});
         if(response.status !== 200) throw `Error retrieving boards for project: ${projectKey}`;
 		let searchResults = await response.json();
@@ -26,9 +26,9 @@ class TestCycleFolderCreator {
     }
 
     async _getSprintsForBoard(board) {
-        const url = encodeURI(`${this._jiraSettings.url}/rest/agile/1.0/board/${board.id}/sprint`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/agile/1.0/board/' + board.id + '/sprint');
         const response = await fetch(url, {headers: {'Authorization': this._authString}});
-        if(response.status !== 200) throw `Error retrieving sprints for board: ${board.name}`;
+        if(response.status !== 200) throw 'Error retrieving sprints for board: ' + board.name;
 		let searchResults = await response.json();
 		return searchResults.values;
     }
@@ -39,9 +39,9 @@ class TestCycleFolderCreator {
             'name': `/${name}`,
             'type': 'TEST_RUN'
         });
-        const url = encodeURI(`${this._jiraSettings.url}/rest/atm/1.0/folder`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/folder');
         const response = await fetch(url, reqHeadersObj);
-        if(response.status !== 201) throw `Error creating test cycle folder: ${name}`;
+        if(response.status !== 201) throw 'Error creating test cycle folder: ' + name;
         console.log(`Created test cycle folder: ${name}`);
     }
 

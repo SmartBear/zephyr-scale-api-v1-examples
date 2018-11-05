@@ -7,7 +7,7 @@ class TestCaseCreator {
 		this._jiraSettings = jiraSettings;
         this._jql = jql;
         this._projectKey = projectKey;
-        this._authString = 'Basic ' + Buffer.from(`${this._jiraSettings.user}:${this._jiraSettings.password}`).toString('base64');
+        this._authString = 'Basic ' + Buffer.from(this._jiraSettings.user + ':' + this._jiraSettings.password).toString('base64');
     }
 
     async createTestCases() {
@@ -17,17 +17,17 @@ class TestCaseCreator {
     }
 
     async _searchIssues(jql) {
-        const url = encodeURI(`${this._jiraSettings.url}/rest/api/2/search?jql=${jql}`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/api/2/search?jql=' + jql);
         const response = await fetch(url, {headers: {'Authorization': this._authString}});
-        if(response.status !== 200) throw `Error searching for issues: ${jql}`;
+        if(response.status !== 200) throw 'Error searching for issues: ' + jql;
 		let searchResults = await response.json();
 		return searchResults.issues;
     }
 
     async _getLinkedTestCases(issueKeys) {
-        const url = encodeURI(`${this._jiraSettings.url}/rest/atm/1.0/testcase/search?query=issueKeys IN ("${issueKeys.join('", "')}")`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testcase/search?query=issueKeys IN ("' + issueKeys.join('", "') + '")');
         const response = await fetch(url, {headers: {'Authorization': this._authString}});
-        if(response.status !== 200) throw `Error searching for test cases: ${issueKeys}`;
+        if(response.status !== 200) throw 'Error searching for test cases: ' + issueKeys;
 		let testCases = await response.json();
 		return testCases.map(testCase => testCase.key);
     }
@@ -38,11 +38,11 @@ class TestCaseCreator {
             projectKey: projectKey,
             items: testCaseKeys.map(key => {return {testCaseKey: key}})
         });
-        const url = encodeURI(`${this._jiraSettings.url}/rest/atm/1.0/testrun`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testrun');
         const response = await fetch(url, request);
-        if(response.status !== 201) throw `Error creating test cycle: ${name}`;
+        if(response.status !== 201) throw 'Error creating test cycle: ' + name;
         const jsonResponse = await response.json();
-        console.log(`Test cycle created: ${jsonResponse.key} - ${name}`);
+        console.log('Test cycle created: ' + jsonResponse.key + ' - ' + name);
     }
 
     _buildRequest(body) {

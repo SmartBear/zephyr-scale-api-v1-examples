@@ -8,6 +8,7 @@ class TestExecutionCreator {
 		this._jiraSettings = jiraSettings;
         this._executionResults = executionResults;
         this._projectKey = projectKey;
+        this._authString = 'Basic ' + Buffer.from(this._jiraSettings.user + ':' + this._jiraSettings.password).toString('base64');
     }
 
     async createExecutions() {
@@ -16,11 +17,11 @@ class TestExecutionCreator {
             projectKey: this._projectKey,
             items: this._executionResults
         });
-        const url = encodeURI(`${this._jiraSettings.url}/rest/atm/1.0/testrun`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testrun');
         const response = await fetch(url, request);
-        if(response.status !== 201) throw `Error creating test cycle.`;
+        if(response.status !== 201) throw 'Error creating test cycle.';
         const jsonResponse = await response.json();
-        console.log(`Test cycle created: ${jsonResponse.key}`);
+        console.log('Test cycle created:' + jsonResponse.key);
     }
 
     _buildRequest(body) {
@@ -30,7 +31,7 @@ class TestExecutionCreator {
 			headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + Buffer.from(`${this._jiraSettings.user}:${this._jiraSettings.password}`).toString('base64')
+                'Authorization': this._authString
             }
 		};
     }

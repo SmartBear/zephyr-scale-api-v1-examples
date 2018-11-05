@@ -4,8 +4,9 @@ const fetch = require('node-fetch');
 
 class TestCaseMigrator {
     constructor(jiraSettings, testCasesToMigrate) {
-		this.jiraSettings = jiraSettings;
+		this._jiraSettings = jiraSettings;
         this._testCasesToMigrate = testCasesToMigrate;
+        this._authString = 'Basic ' + Buffer.from(this._jiraSettings.user + ':' + this._jiraSettings.password).toString('base64');
     }
 
     async migrateTestCases() {
@@ -16,11 +17,11 @@ class TestCaseMigrator {
 
     async _createTestCase(testCase) {
         const request = this._buildRequest(testCase);
-        const url = encodeURI(`${this.jiraSettings.url}/rest/atm/1.0/testcase`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testcase');
         const response = await fetch(url, request);
-        if(response.status !== 201) throw `Error creating test case: ${testCase.name}`;
+        if(response.status !== 201) throw 'Error creating test case: ' + testCase.name;
         const jsonResponse = await response.json();
-        console.log(`Test case created: ${jsonResponse.key} - ${testCase.name}`);
+        console.log('Test case created: ' + jsonResponse.key + ' - ' + testCase.name);
     }
 
     _buildRequest(body) {
@@ -30,7 +31,7 @@ class TestCaseMigrator {
 			headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + Buffer.from(`${this.jiraSettings.user}:${this.jiraSettings.password}`).toString('base64')
+                'Authorization': this._authString
             }
 		};
     }

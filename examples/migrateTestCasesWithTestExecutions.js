@@ -4,8 +4,9 @@ const fetch = require('node-fetch');
 
 class TestCaseMigrator {
     constructor(jiraSettings, testCasesToMigrate) {
-		this.jiraSettings = jiraSettings;
+		this._jiraSettings = jiraSettings;
         this._testCasesToMigrate = testCasesToMigrate;
+        this._authString = 'Basic ' + Buffer.from(this._jiraSettings.user + ':' + this._jiraSettings.password).toString('base64');
     }
 
     async migrateTestCases() {
@@ -18,11 +19,11 @@ class TestCaseMigrator {
         const executions = testCase.executions;
         delete(testCase.executions);
         const request = this._buildRequest(testCase);
-        const url = encodeURI(`${this.jiraSettings.url}/rest/atm/1.0/testcase`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testcase');
         const response = await fetch(url, request);
-        if(response.status !== 201) throw `Error creating test case: ${testCase.name}`;
+        if(response.status !== 201) throw 'Error creating test case: ' + testCase.name;
         const jsonResponse = await response.json();
-        console.log(`Test case created: ${jsonResponse.key} - ${testCase.name}`);
+        console.log('Test case created: ' + jsonResponse.key + ' - ' + testCase.name);
         await this._createTestExecutions(testCase.projectKey, jsonResponse.key, executions);
     }
 
@@ -31,10 +32,10 @@ class TestCaseMigrator {
             execution.projectKey = projectKey;
             execution.testCaseKey = testCaseKey;
             const request = this._buildRequest(execution);
-            const url = encodeURI(`${this.jiraSettings.url}/rest/atm/1.0/testresult`);
+            const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testresult');
             const response = await fetch(url, request);
-            if(response.status !== 201) throw `Error creating test execution: ${testCaseKey}`;
-            console.log(`Test execution created: ${testCaseKey}`);
+            if(response.status !== 201) throw 'Error creating test execution: ' + testCaseKey;
+            console.log('Test execution created: ' + testCaseKey);
         }
     }
 
@@ -45,7 +46,7 @@ class TestCaseMigrator {
 			headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + Buffer.from(`${this.jiraSettings.user}:${this.jiraSettings.password}`).toString('base64')
+                'Authorization': this._authString
             }
 		};
     }

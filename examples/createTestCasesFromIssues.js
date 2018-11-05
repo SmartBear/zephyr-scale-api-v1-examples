@@ -7,7 +7,7 @@ class TestCaseCreator {
 		this._jiraSettings = jiraSettings;
         this._jql = jql;
         this._projectKey = projectKey;
-        this._authString = 'Basic ' + Buffer.from(`${this._jiraSettings.user}:${this._jiraSettings.password}`).toString('base64');
+        this._authString = 'Basic ' + Buffer.from(this._jiraSettings.user + ':' + this._jiraSettings.password).toString('base64');
     }
 
     async createTestCases() {
@@ -20,7 +20,7 @@ class TestCaseCreator {
     async _searchIssues(jql) {
         const url = encodeURI(`${this._jiraSettings.url}/rest/api/2/search?jql=${jql}`);
         const response = await fetch(url, {headers: {'Authorization': this._authString}});
-        if(response.status !== 200) throw `Error searching for issues: ${jql}`;
+        if(response.status !== 200) throw 'Error searching for issues:' + jql;
 		let searchResults = await response.json();
 		return searchResults.issues;
     }
@@ -31,11 +31,11 @@ class TestCaseCreator {
             projectKey: projectKey,
             issueLinks: [issueLink]
         });
-        const url = encodeURI(`${this._jiraSettings.url}/rest/atm/1.0/testcase`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testcase');
         const response = await fetch(url, request);
-        if(response.status !== 201) throw `Error creating test case: ${name}`;
+        if(response.status !== 201) throw 'Error creating test case: ' + name;
         const jsonResponse = await response.json();
-        console.log(`Test case created: ${jsonResponse.key} - ${name}`);
+        console.log('Test case created: ' + jsonResponse.key + ' - ' + name);
     }
 
     _buildRequest(body) {

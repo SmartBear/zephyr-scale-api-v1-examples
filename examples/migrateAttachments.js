@@ -6,8 +6,9 @@ const FormData = require('form-data');
 
 class TestCaseMigrator {
     constructor(jiraSettings, testCasesToMigrate) {
-		this.jiraSettings = jiraSettings;
+		this._jiraSettings = jiraSettings;
         this._testCasesToMigrate = testCasesToMigrate;
+        this._authString = 'Basic ' + Buffer.from(this._jiraSettings.user + ':' + this._jiraSettings.password).toString('base64');
     }
 
     async migrateTestCases() {
@@ -21,11 +22,11 @@ class TestCaseMigrator {
 
     async _createTestCase(testCase) {
         const request = this._buildRequest(testCase);
-        const url = encodeURI(`${this.jiraSettings.url}/rest/atm/1.0/testcase`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testcase');
         const response = await fetch(url, request);
         const jsonResponse = await response.json();
-        if(response.status !== 201) throw `Error creating test case: ${testCase.name}`;
-        console.log(`Test case created: ${jsonResponse.key} - ${testCase.name}`);
+        if(response.status !== 201) throw 'Error creating test case: ' + testCase.name;
+        console.log('Test case created: ' + jsonResponse.key + ' - ' + testCase.name);
         return jsonResponse.key;
     }
 
@@ -38,12 +39,12 @@ class TestCaseMigrator {
             body: formData,
             headers: formData.getHeaders()
         };
-        request.headers.Authorization = 'Basic ' + Buffer.from(`${this.jiraSettings.user}:${this.jiraSettings.password}`).toString('base64');
+        request.headers.Authorization = this._authString;
 
-        const url = encodeURI(`${this.jiraSettings.url}/rest/atm/1.0/testcase/${testCaseKey}/attachments`);
+        const url = encodeURI(this._jiraSettings.url + '/rest/atm/1.0/testcase/' + testCaseKey + '/attachments');
         const response = await fetch(url, request);
-        if(response.status !== 201) throw `Error uploading attachment ${filePath} to test case ${testCaseKey}`;
-        console.log(`Attachment uploaded: ${testCaseKey} - ${filePath}`);
+        if(response.status !== 201) throw 'Error uploading attachment ' + filePath + ' to test case ' + testCaseKey;
+        console.log('Attachment uploaded: ' + testCaseKey + ' - ' + filePath);
     }
 
     _buildRequest(body) {
@@ -53,7 +54,7 @@ class TestCaseMigrator {
 			headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + Buffer.from(`${this.jiraSettings.user}:${this.jiraSettings.password}`).toString('base64')
+                'Authorization': this._authString
             }
 		};
     }
